@@ -1,0 +1,206 @@
+{
+  "dcm2niixOptions": "-d 9 -b y -ba y -z y -f '%3s_%f_%p_%t'",
+  "case_sensitive": true,
+  "search_method": "fnmatch",
+  "dup_method": "run",
+  "compKeys": ["SeriesNumber", "AcquisitionTime", "SidecarFilename"],
+  "post_op": [{"cmd": "pydeface --outfile dst_file src_file --verbose --debug --force",
+				"datatype": "anat",
+				"suffix": ["T1w", "FLAIR", "T2w", "angio"]}],
+
+
+
+  "extractors": {
+    "SeriesDescription": [
+      "run-(?P<run>[0-9]+)",
+      "task-(?P<task>[0-9]+)"
+    ],
+    "PhaseEncodedDirection": [
+      "dir-(?P<dir>-?j|i)"
+    ],
+    "EchoNumber": [
+      "echo-(?P<echo>[0-9])"
+    ],
+    "BodyPartExamined": [
+      "(?P<bodypart>[a-zA-Z]+)"
+    ]
+  },
+
+
+  "descriptions": [
+    {
+      "datatype": "anat",
+      "suffix": "T1w",
+      "criteria": {
+        "ProtocolName": "anat-T1w*"
+      }
+    },
+    {
+      "datatype": "anat",
+      "suffix": "T2w",
+      "criteria": {
+        "ProtocolName": "anat-T2w*"
+      }
+    },
+    {
+      "datatype": "anat",
+      "suffix": "FLAIR",
+      "criteria": {
+        "ProtocolName": "anat-FLAIRw"
+      }
+    },
+    {
+      "datatype": "anat",
+      "suffix": "angio",
+      "criteria": {
+        "ProtocolName": "vessel_*",
+        "ImageType": ["DERIVED", "PRIMARY", "ANGIO", "ADDITION"]
+      }
+    },
+
+
+
+
+    {
+      "datatype": "dwi",
+      "suffix": "dwi",
+      "criteria": {
+        "SidecarFilename": "*dwi*",
+        "ProtocolName": "dwi_acq-*_dir-AP",
+        "ImageType": ["ORIGINAL", "PRIMARY", "DIFFUSION", "NONE"]
+     }
+    },
+    {
+      "datatype": "dwi",
+      "suffix": "sbref",
+      "criteria": {
+        "SidecarFilename": "*dwi*",
+        "ProtocolName": "dwi_acq-*_dir-PA",
+        "ImageType": ["ORIGINAL", "PRIMARY", "DIFFUSION", "NONE"]
+      }
+    },
+
+
+
+
+
+
+   {
+     "id": "id_perf_asl",
+     "datatype": "perf",
+     "suffix": "asl",
+     "criteria": {
+       "ProtocolName": "asl_3d_tra_p2*",
+       "SeriesDescription": "asl_3d_tra_p2*",
+       "ImageType": ["ORIGINAL", "PRIMARY", "ASL", "NONE"]
+     },
+     "sidecar_changes": {
+        "RepetitionTimePreparation": 7.4,
+        "M0Type": "Separate",
+        "LabelingDuration": 1.800,
+        "PostLabelingDelay": [1.500, 1.500, 1.600, 1.600, 1.700, 1.700, 1.800, 1.800, 2.000,  2.000],
+        "TotalAcquiredPairs": 1,
+        "AcquisitionVoxelSize": [1.6, 1.6, 3.0],
+        "BackgroundSuppression": true
+     }
+   },
+   {
+     "id": "id_perf_m0scan",
+     "datatype": "perf",
+     "suffix": "m0scan",
+     "criteria": {
+       "ProtocolName": "asl_m0",
+       "SeriesDescription": "asl_m0",
+       "ImageType": ["ORIGINAL", "PRIMARY", "ASL", "NONE"]
+     },
+      "sidecar_changes": {
+         "RepetitionTimePreparation": 7.4,
+         "AcquisitionVoxelSize": [1.6, 1.6, 3.0],
+         "IntendedFor": "id_perf_asl"
+     }
+   },
+
+
+
+
+
+   {
+     "id": "id_task_learning_AP_bold",
+     "datatype": "func",
+     "suffix": "bold",
+     "custom_entities": "task-rest_dir-AP_run-01",
+     "criteria": {
+       "ProtocolName": "*bold_task-restingstate*dir-[aA][pP]",
+       "MultibandAccelerationFactor": "[1-9]"
+     },
+     "sidecar_changes": {
+       "TaskName": "rest"
+     }
+   },
+   {
+     "id": "id_task_learning_PA_bold",
+     "datatype": "func",
+     "suffix": "bold",
+     "custom_entities": "task-rest_dir-PA_run-01",
+     "criteria": {
+       "ProtocolName": "*bold_task-restingstate*dir-[pP][aA]",
+       "MultibandAccelerationFactor": "[1-9]"
+     },
+     "sidecar_changes": {
+       "TaskName": "rest"
+     }
+   },
+   {
+     "id": "id_task_learning_AP_sbref",
+     "datatype": "func",
+     "suffix": "sbref",
+     "custom_entities": "task-rest_dir-AP_run-02",
+     "criteria": {
+       "SeriesDescription": "*task-SBref*dir-[aA][pP]"
+     },
+     "sidecar_changes": {
+       "TaskName": "rest"
+     }
+   },
+   {
+     "id": "id_task_learning_PA_sbref",
+     "datatype": "func",
+     "suffix": "sbref",
+     "custom_entities": "task-rest_dir-PA_run-02",
+     "criteria": {
+       "SeriesDescription": "*task-SBref*dir-[pP][aA]"
+     },
+     "sidecar_changes": {
+       "TaskName": "rest"
+     }
+   },
+
+
+
+
+
+
+   {
+     "datatype": "fmap",
+     "suffix": "epi",
+     "custom_entities": "dir-ap",
+     "criteria": {
+       "ProtocolName": "*dir-[aA][pP]_topup*"
+     },
+     "sidecar_changes": {
+       "IntendedFor": ["id_task_learning_AP_bold", "id_task_learning_AP_sbref"]
+     }
+   },
+   {
+     "datatype": "fmap",
+     "suffix": "epi",
+     "custom_entities": "dir-pa",
+     "criteria": {
+       "SidecarFilename": "*dir-[pP][aA]_topup*"
+     },
+     "sidecar_changes": {
+       "IntendedFor": ["id_task_learning_PA_bold", "id_task_learning_PA_sbref", "id_perf_asl", "id_perf_m0scan"]
+     }
+   }
+  ]
+}
